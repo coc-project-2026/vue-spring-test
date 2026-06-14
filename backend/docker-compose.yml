@@ -1,0 +1,21 @@
+# 신입 메모: docker compose up 한 번으로 DB까지 같이 띄웁니다.
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: kimsoran
+      POSTGRES_PASSWORD: kimsoran
+      POSTGRES_DB: kimsoran
+    ports:
+      - "5432:5432"
+
+  app:
+    build: .
+    depends_on: [db]
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/kimsoran
+      SPRING_DATASOURCE_USERNAME: kimsoran
+      SPRING_DATASOURCE_PASSWORD: kimsoran
+      JWT_SECRET: please-change-me-in-production-32bytes-min!!
+    ports:
+      - "8080:8080"

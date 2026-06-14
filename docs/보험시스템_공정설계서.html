@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>保険契約管理システム 設計書 (보험계약관리시스템 설계서)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<style>
+  :root{
+    --ink:#1a1d24;
+    --sub:#4a5160;
+    --line:#d9dde5;
+    --line2:#e9ecf2;
+    --paper:#fbfbf9;
+    --accent:#0b3d5c;
+    --accent2:#9a1c2e;
+    --gold:#b08642;
+    --chip:#eef2f6;
+    --code-bg:#0f1620;
+    --ok:#1f7a4d;
+    --warn:#a85d00;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Noto Sans KR',sans-serif;
+    color:var(--ink);
+    background:
+      repeating-linear-gradient(0deg,transparent,transparent 31px,rgba(11,61,92,0.025) 32px),
+      var(--paper);
+    line-height:1.75;
+    font-size:15px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .doc{max-width:980px;margin:0 auto;padding:0 24px 120px;}
+
+  /* ---------- COVER ---------- */
+  .cover{
+    min-height:96vh;display:flex;flex-direction:column;justify-content:center;
+    border-bottom:3px double var(--accent);position:relative;padding:60px 0;
+  }
+  .cover .kicker{font-family:'Noto Serif JP',serif;letter-spacing:.5em;color:var(--accent2);font-size:13px;text-transform:uppercase;margin-bottom:28px;}
+  .cover h1{font-family:'Noto Serif JP',serif;font-size:clamp(34px,6vw,62px);font-weight:700;line-height:1.15;color:var(--accent);letter-spacing:-.01em;}
+  .cover h1 .ko{display:block;font-family:'Noto Sans KR',sans-serif;font-weight:400;font-size:.42em;color:var(--sub);margin-top:14px;letter-spacing:0;}
+  .cover .rule{width:84px;height:4px;background:var(--gold);margin:38px 0;}
+  .cover .meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 0;max-width:560px;border-top:1px solid var(--line);}
+  .cover .meta div{display:flex;border-bottom:1px solid var(--line);padding:11px 4px;font-size:14px;}
+  .cover .meta b{width:130px;color:var(--accent2);font-weight:700;font-family:'Noto Serif JP',serif;flex-shrink:0;}
+  .cover .seal{position:absolute;top:60px;right:0;width:96px;height:96px;border:2px solid var(--accent2);border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--accent2);font-family:'Noto Serif JP',serif;font-weight:700;font-size:13px;line-height:1.3;transform:rotate(-8deg);opacity:.85;}
+
+  /* ---------- TOC ---------- */
+  .toc{margin:64px 0;padding:30px 34px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--accent);box-shadow:0 1px 0 var(--line2),0 18px 40px -28px rgba(11,61,92,.4);}
+  .toc h2{font-family:'Noto Serif JP',serif;font-size:18px;color:var(--accent);margin-bottom:18px;letter-spacing:.04em;}
+  .toc ol{list-style:none;counter-reset:toc;}
+  .toc > ol > li{counter-increment:toc;padding:7px 0;border-bottom:1px dashed var(--line);}
+  .toc > ol > li::before{content:counter(toc,decimal-leading-zero);font-family:'JetBrains Mono',monospace;color:var(--gold);font-weight:500;margin-right:14px;font-size:13px;}
+  .toc a{color:var(--ink);text-decoration:none;font-weight:500;}
+  .toc a:hover{color:var(--accent2);}
+  .toc .jp{font-family:'Noto Serif JP',serif;}
+  .toc .ko{color:var(--sub);font-size:13px;font-weight:400;}
+
+  /* ---------- SECTIONS ---------- */
+  section{margin-top:70px;scroll-margin-top:20px;}
+  .sec-head{display:flex;align-items:baseline;gap:16px;border-bottom:2px solid var(--accent);padding-bottom:10px;margin-bottom:26px;}
+  .sec-head .num{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;color:#fff;background:var(--accent);padding:4px 10px;letter-spacing:.1em;flex-shrink:0;align-self:center;}
+  .sec-head h2{font-family:'Noto Serif JP',serif;font-size:27px;color:var(--accent);font-weight:700;}
+  .sec-head .ko{font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:400;color:var(--sub);margin-left:auto;align-self:center;}
+
+  h3{font-family:'Noto Serif JP',serif;font-size:19px;color:var(--ink);margin:38px 0 14px;padding-left:14px;border-left:4px solid var(--gold);}
+  h3 .ko{font-family:'Noto Sans KR',sans-serif;font-size:13px;color:var(--sub);font-weight:400;margin-left:8px;}
+  h4{font-size:15px;color:var(--accent2);margin:24px 0 10px;font-weight:700;}
+  p{margin:12px 0;color:#252a33;}
+  .lead{font-size:15.5px;color:var(--sub);border-left:3px solid var(--line);padding-left:16px;font-style:normal;}
+
+  /* tables */
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:13.5px;background:#fff;box-shadow:0 14px 30px -28px rgba(0,0,0,.5);}
+  caption{caption-side:top;text-align:left;font-family:'Noto Serif JP',serif;font-size:13px;color:var(--accent2);font-weight:700;padding:0 0 7px 2px;}
+  th{background:var(--accent);color:#fff;font-weight:500;text-align:left;padding:9px 12px;font-size:12.5px;letter-spacing:.02em;border:1px solid var(--accent);}
+  td{padding:8px 12px;border:1px solid var(--line);vertical-align:top;}
+  tbody tr:nth-child(even){background:#f6f8fa;}
+  td code,p code,li code{font-family:'JetBrains Mono',monospace;background:var(--chip);color:var(--accent2);padding:1px 6px;border-radius:3px;font-size:12.5px;}
+  .pk{color:var(--accent2);font-weight:700;}
+  .nn{color:var(--sub);font-size:11px;}
+
+  ul,ol{margin:12px 0 12px 6px;padding-left:22px;}
+  li{margin:5px 0;}
+  ul.clean{list-style:none;padding-left:0;}
+  ul.clean li{padding-left:24px;position:relative;}
+  ul.clean li::before{content:"▸";color:var(--gold);position:absolute;left:4px;}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0;}
+  .chip{background:var(--chip);border:1px solid var(--line);padding:5px 12px;border-radius:20px;font-size:12.5px;color:var(--accent);font-family:'JetBrains Mono',monospace;}
+
+  pre{background:var(--code-bg);color:#e6edf3;padding:18px 20px;border-radius:8px;overflow:auto;margin:16px 0;font-size:12.5px;line-height:1.65;border:1px solid #243140;}
+  pre code{font-family:'JetBrains Mono',monospace;}
+  .k{color:#79c0ff;} .s{color:#a5d6ff;} .c{color:#8b949e;font-style:italic;} .t{color:#ffa657;} .f{color:#d2a8ff;}
+
+  .mermaid{background:#fff;border:1px solid var(--line);border-radius:8px;padding:22px;margin:18px 0;text-align:center;box-shadow:0 14px 34px -30px rgba(0,0,0,.6);}
+
+  .note{background:#f3f7fb;border:1px solid var(--line);border-left:4px solid var(--accent);padding:14px 18px;margin:18px 0;font-size:13.5px;}
+  .note b{color:var(--accent);}
+  .warn{background:#fdf6ee;border-left-color:var(--warn);}
+  .warn b{color:var(--warn);}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr;}.cover .meta{grid-template-columns:1fr;}.sec-head{flex-wrap:wrap;}.sec-head .ko{margin-left:0;}}
+
+  .card{background:#fff;border:1px solid var(--line);border-top:3px solid var(--gold);padding:18px 20px;}
+  .card h4{margin-top:0;}
+
+  footer{margin-top:90px;padding-top:24px;border-top:3px double var(--accent);text-align:center;color:var(--sub);font-size:12.5px;font-family:'Noto Serif JP',serif;}
+
+  /* phase ribbon */
+  .phase-tag{display:inline-block;font-family:'Noto Serif JP',serif;font-size:11px;letter-spacing:.2em;color:#fff;background:var(--accent2);padding:3px 10px;margin-bottom:6px;}
+
+  /* ===== UI MOCKUP (screen design) ===== */
+  .browser{border:1px solid #c7cfdb;border-radius:10px;overflow:hidden;box-shadow:0 24px 60px -34px rgba(11,61,92,.6);background:#fff;margin:14px 0;}
+  .browser-bar{background:#e7ebf1;display:flex;align-items:center;gap:7px;padding:9px 14px;border-bottom:1px solid #c7cfdb;}
+  .dot{width:11px;height:11px;border-radius:50%;}
+  .dot.r{background:#e0635a;}.dot.y{background:#e3b341;}.dot.g{background:#54a564;}
+  .url{margin-left:12px;background:#fff;border:1px solid #c7cfdb;border-radius:6px;padding:3px 12px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--sub);flex:1;}
+  .app{background:#f4f6f9;}
+  .app-top{background:var(--accent);color:#fff;display:flex;align-items:center;padding:11px 18px;font-size:13px;}
+  .app-top .logo{font-family:'Noto Serif JP',serif;font-weight:700;letter-spacing:.05em;}
+  .app-top .logo small{font-weight:400;opacity:.7;margin-left:8px;}
+  .app-top .user{margin-left:auto;opacity:.85;font-size:12px;}
+  .app-tabs{display:flex;background:#0a3450;padding:0 10px;flex-wrap:wrap;}
+  .app-tabs span{color:#cdd9e3;font-size:12px;padding:9px 14px;border-bottom:2px solid transparent;}
+  .app-tabs span.on{color:#fff;border-bottom-color:var(--gold);background:rgba(255,255,255,.06);}
+  .app-body{padding:22px;}
+  .page-title{font-family:'Noto Serif JP',serif;font-size:18px;color:var(--accent);font-weight:700;margin-bottom:4px;border-left:4px solid var(--gold);padding-left:10px;}
+  .crumb{font-size:11px;color:var(--sub);margin-bottom:18px;padding-left:14px;}
+  .form-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px dotted #c7cfdb;}
+  .form-row .lbl{width:170px;font-size:13px;color:var(--ink);font-weight:500;flex-shrink:0;display:flex;align-items:center;gap:6px;}
+  .req{background:var(--accent2);color:#fff;font-size:9px;padding:1px 5px;border-radius:3px;}
+  .opt{background:#9aa3b0;color:#fff;font-size:9px;padding:1px 5px;border-radius:3px;}
+  .field{background:#fff;border:1px solid #c7cfdb;border-radius:5px;padding:6px 10px;font-size:13px;color:#333;min-width:160px;display:inline-flex;align-items:center;gap:8px;}
+  .field.sel::after{content:"▾";margin-left:auto;color:var(--sub);}
+  .field.ph{color:#9aa3b0;}
+  .num-cell{display:inline-flex;align-items:center;}
+  .yen{color:var(--sub);font-size:12px;margin:0 4px;}
+  .callout{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--accent2);color:#fff;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-right:6px;flex-shrink:0;vertical-align:middle;}
+  .btn{display:inline-block;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:9px 22px;font-size:13px;font-weight:500;font-family:inherit;}
+  .btn.sub{background:#fff;color:var(--accent);border:1px solid var(--accent);}
+  .btn.danger{background:var(--accent2);}
+  .btn.ok{background:var(--ok);}
+  .btnbar{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;padding-top:16px;border-top:1px solid #c7cfdb;flex-wrap:wrap;}
+  .panel{background:#fff;border:1px solid #c7cfdb;border-radius:8px;padding:16px 18px;margin:12px 0;}
+  .panel h5{font-size:12px;color:var(--accent2);font-family:'Noto Serif JP',serif;margin-bottom:10px;letter-spacing:.04em;}
+  .kv{display:grid;grid-template-columns:130px 1fr;gap:7px 0;font-size:13px;}
+  .kv dt{color:var(--sub);}
+  .kv dd{color:var(--ink);font-weight:500;}
+  .big-num{font-family:'Noto Serif JP',serif;font-size:30px;color:var(--accent2);font-weight:700;}
+  .ui-table{width:100%;border-collapse:collapse;font-size:12.5px;background:#fff;}
+  .ui-table th{background:#e7ebf1;color:var(--accent);text-align:left;padding:7px 10px;border:1px solid #c7cfdb;font-weight:600;}
+  .ui-table td{padding:6px 10px;border:1px solid #c7cfdb;}
+  .badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;}
+  .badge.active{background:#e3f3ea;color:var(--ok);}
+  .badge.wait{background:#fbf0e0;color:var(--warn);}
+  .badge.paid{background:#e9eef5;color:var(--accent);}
+  .upload{border:2px dashed #c7cfdb;border-radius:8px;padding:24px;text-align:center;color:var(--sub);font-size:13px;background:#fafbfc;}
+  table.spec{width:100%;border-collapse:collapse;margin:14px 0;font-size:12.5px;background:#fff;box-shadow:0 14px 30px -30px rgba(0,0,0,.5);}
+  table.spec caption{caption-side:top;text-align:left;font-family:'Noto Serif JP',serif;font-size:12.5px;color:var(--accent2);font-weight:700;padding:0 0 6px 2px;}
+  table.spec th{background:var(--accent);color:#fff;font-weight:500;text-align:left;padding:8px 10px;font-size:11.5px;border:1px solid var(--accent);}
+  table.spec td{padding:7px 10px;border:1px solid var(--line);vertical-align:top;}
+  table.spec tbody tr:nth-child(even){background:#f6f8fa;}
+  table.spec .no{text-align:center;font-family:'JetBrains Mono',monospace;color:var(--accent2);font-weight:700;}
+  .y{text-align:center;color:var(--accent2);font-weight:700;}
+  .n{text-align:center;color:#aab2bd;}
+  .scr-block{border:1px solid var(--line);border-left:4px solid var(--accent2);background:#fff;padding:20px 22px;margin:22px 0;box-shadow:0 16px 36px -32px rgba(0,0,0,.5);}
+  .scr-block > h4:first-child{margin-top:0;}
+  .scr-id{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:12px;color:#fff;background:var(--accent2);padding:3px 9px;letter-spacing:.06em;margin-right:8px;}
+  .scr-title{font-family:'Noto Serif JP',serif;font-size:17px;color:var(--accent);font-weight:700;}
+  .scr-meta{font-size:12px;color:var(--sub);margin:8px 0 4px;}
+  .scr-meta b{color:var(--accent2);}
+  .step-h{font-size:13px;color:var(--accent2);font-weight:700;margin:18px 0 8px;font-family:'Noto Serif JP',serif;}
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <!-- ===================== COVER ===================== -->
+  <header class="cover">
+    <div class="seal">設計書<br>承認印</div>
+    <div class="kicker">System Design Document</div>
+    <h1>保険契約管理システム<br>設計書
+      <span class="ko">보험계약관리시스템 — 전체 공정 설계서</span>
+    </h1>
+    <div class="rule"></div>
+    <div class="meta">
+      <div><b>プロジェクト</b><span>InsureCore (保険契約管理基盤)</span></div>
+      <div><b>文書区分</b><span>工程横断 設計書 (전체 공정)</span></div>
+      <div><b>バージョン</b><span>v1.0</span></div>
+      <div><b>作成日</b><span>2026-05-31</span></div>
+      <div><b>機密区分</b><span>社外秘 (Confidential)</span></div>
+      <div><b>承認状態</b><span>レビュー待ち (검토 대기)</span></div>
+    </div>
+  </header>
+
+  <!-- ===================== TOC ===================== -->
+  <nav class="toc">
+    <h2>目次 — 목차</h2>
+    <ol>
+      <li><a href="#s0"><span class="jp">文書管理情報</span> <span class="ko">문서 관리 정보</span></a></li>
+      <li><a href="#s1"><span class="jp">要件定義</span> <span class="ko">요건 정의</span></a></li>
+      <li><a href="#s2"><span class="jp">基本設計</span> <span class="ko">기본 설계 (아키텍처·DB·화면·API)</span></a></li>
+      <li><a href="#s3"><span class="jp">詳細設計</span> <span class="ko">상세 설계 (클래스·시퀀스·로직)</span></a></li>
+      <li><a href="#s4"><span class="jp">テスト計画</span> <span class="ko">테스트 계획</span></a></li>
+      <li><a href="#s5"><span class="jp">リリース・運用設計</span> <span class="ko">배포·운영 설계</span></a></li>
+      <li><a href="#s6"><span class="jp">体制・用語</span> <span class="ko">체제·용어집</span></a></li>
+    </ol>
+  </nav>
+
+  <!-- ===================== 0. DOC INFO ===================== -->
+  <section id="s0">
+    <div class="sec-head"><span class="num">00</span><h2>文書管理情報</h2><span class="ko">문서 관리 정보</span></div>
+
+    <h3>改訂履歴 <span class="ko">개정 이력</span></h3>
+    <table>
+      <thead><tr><th>版</th><th>改訂日</th><th>改訂内容 (개정 내용)</th><th>作成者</th><th>承認者</th></tr></thead>
+      <tbody>
+        <tr><td>0.1</td><td>2026-05-20</td><td>初版ドラフト作成 (초안 작성)</td><td>SE 김</td><td>—</td></tr>
+        <tr><td>0.5</td><td>2026-05-27</td><td>基本設計・DB設計 追記 (기본설계·DB 추가)</td><td>SE 김</td><td>TL 佐藤</td></tr>
+        <tr><td>1.0</td><td>2026-05-31</td><td>全工程 統合・レビュー提出 (전공정 통합)</td><td>SE 김</td><td>PM 田中</td></tr>
+      </tbody>
+    </table>
+
+    <h3>関連文書 <span class="ko">관련 문서</span></h3>
+    <table>
+      <thead><tr><th>文書名</th><th>区分</th><th>備考 (비고)</th></tr></thead>
+      <tbody>
+        <tr><td>要件定義書 (要-001)</td><td>上位文書</td><td>本設計の根拠 (본 설계의 근거)</td></tr>
+        <tr><td>画面遷移図 (基-010)</td><td>別紙</td><td>基本設計の補足</td></tr>
+        <tr><td>テーブル定義書 (基-020)</td><td>別紙</td><td>本書の §2.4 を正とする</td></tr>
+        <tr><td>テスト仕様書 (試-001)</td><td>下位文書</td><td>§4 に基づき別途作成</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ===================== 1. 要件定義 ===================== -->
+  <section id="s1">
+    <div class="sec-head"><span class="num">01</span><h2>要件定義</h2><span class="ko">요건 정의</span></div>
+    <span class="phase-tag">工程 1 / PHASE 1</span>
+    <p class="lead">고객의 보험 가입부터 보험금 지급까지의 업무를 디지털화하는 보험계약관리시스템(保険契約管理システム)을 구축한다. 본 장에서는 시스템이 만족해야 할 기능요건(機能要件)과 비기능요건(非機能要件)을 정의한다.</p>
+
+    <h3>1.1 システム概要 <span class="ko">시스템 개요</span></h3>
+    <table>
+      <tbody>
+        <tr><th style="width:160px">目的 (목적)</th><td>保険契約のライフサイクル(見積→申込→引受→契約→請求→支払)を一元管理し、業務工数を削減する。</td></tr>
+        <tr><th>対象業務 (대상 업무)</th><td>顧客管理 / 商品管理 / 契約管理 / 保険料計算 / 保険金請求・支払 / 帳票出力</td></tr>
+        <tr><th>利用者 (이용자)</th><td>営業担当・引受担当(アンダーライター)・査定担当・顧客(マイページ)・管理者</td></tr>
+        <tr><th>稼働形態</th><td>Web (社内業務システム + 顧客向けポータル) / 24時間365日 (오전 2~4시 보수 윈도우)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>1.2 機能要件 <span class="ko">기능 요건</span></h3>
+    <table>
+      <caption>表 1-1 機能要件一覧</caption>
+      <thead><tr><th style="width:90px">要件ID</th><th>機能名 (기능명)</th><th>概要 (개요)</th><th style="width:70px">優先度</th></tr></thead>
+      <tbody>
+        <tr><td><code>FR-01</code></td><td>顧客管理</td><td>顧客情報の登録・照会・更新。本人確認(KYC)書類の保管。</td><td>高</td></tr>
+        <tr><td><code>FR-02</code></td><td>商品管理</td><td>保険商品(自動車・生命・火災)の料率テーブル・特約の管理。</td><td>高</td></tr>
+        <tr><td><code>FR-03</code></td><td>見積・申込</td><td>条件入力による保険料試算と申込書の作成。</td><td>高</td></tr>
+        <tr><td><code>FR-04</code></td><td>引受査定 (引受)</td><td>申込内容のリスク評価・承認/謝絶の判定。</td><td>高</td></tr>
+        <tr><td><code>FR-05</code></td><td>契約管理</td><td>契約の成立・更新・解約・異動(住所変更等)。</td><td>高</td></tr>
+        <tr><td><code>FR-06</code></td><td>保険料収納</td><td>口座振替・クレジット決済の連携、入金消込。</td><td>高</td></tr>
+        <tr><td><code>FR-07</code></td><td>保険金請求・支払</td><td>事故受付→査定→支払承認→送金。</td><td>高</td></tr>
+        <tr><td><code>FR-08</code></td><td>帳票・通知</td><td>契約証券PDF発行、満期通知メール/SMS。</td><td>中</td></tr>
+        <tr><td><code>FR-09</code></td><td>顧客ポータル</td><td>顧客が契約照会・各種手続きをセルフで行う。</td><td>中</td></tr>
+      </tbody>
+    </table>
+
+    <h3>1.3 非機能要件 <span class="ko">비기능 요건</span></h3>
+    <table>
+      <caption>表 1-2 非機能要件一覧</caption>
+      <thead><tr><th style="width:110px">分類</th><th>項目</th><th>目標値 (목표치)</th></tr></thead>
+      <tbody>
+        <tr><td>性能</td><td>応答時間 (画面)</td><td>95%tile で 2秒以内</td></tr>
+        <tr><td>性能</td><td>同時接続</td><td>ピーク 1,000 セッション</td></tr>
+        <tr><td>可用性</td><td>稼働率</td><td>99.9% (年間ダウン 約8.7h以内)</td></tr>
+        <tr><td>セキュリティ</td><td>個人情報保護</td><td>保存時 AES-256暗号化 / 通信 TLS1.3 / 個人情報保護法 準拠</td></tr>
+        <tr><td>セキュリティ</td><td>認証</td><td>社内: SSO(OIDC) / 顧客: ID+パスワード+OTP(2要素)</td></tr>
+        <tr><td>監査</td><td>操作ログ</td><td>全更新操作を保管、保存期間 7年</td></tr>
+        <tr><td>拡張性</td><td>スケール</td><td>水平スケール(オートスケール)対応</td></tr>
+        <tr><td>保守性</td><td>テストカバレッジ</td><td>単体テスト 80%以上</td></tr>
+      </tbody>
+    </table>
+
+    <h3>1.4 ユースケース <span class="ko">유스케이스 (대표)</span></h3>
+    <div class="mermaid">
+flowchart LR
+  cust(["顧客<br>고객"])
+  sales(["営業担当<br>영업"])
+  uw(["引受担当<br>언더라이터"])
+  adj(["査定担当<br>손해사정"])
+
+  subgraph SYS[保険契約管理システム]
+    u1["見積・申込<br>견적·신청"]
+    u2["引受査定<br>인수심사"]
+    u3["契約締結<br>계약체결"]
+    u4["保険金請求<br>보험금청구"]
+    u5["支払査定<br>지급사정"]
+  end
+
+  cust --> u1
+  sales --> u1
+  u1 --> u2
+  uw --> u2
+  u2 --> u3
+  cust --> u4
+  u4 --> u5
+  adj --> u5
+    </div>
+  </section>
+
+  <!-- ===================== 2. 基本設計 ===================== -->
+  <section id="s2">
+    <div class="sec-head"><span class="num">02</span><h2>基本設計</h2><span class="ko">기본 설계</span></div>
+    <span class="phase-tag">工程 2 / PHASE 2</span>
+    <p class="lead">要件を満たすシステムの全体構造(アーキテクチャ)・データ構造・画面・APIを定義する。「外部設計」とも呼ばれ、利用者から見える振る舞いを確定する工程。</p>
+
+    <h3>2.1 システム構成 <span class="ko">시스템 구성(아키텍처)</span></h3>
+    <div class="chips">
+      <span class="chip">Frontend: React 18 + TypeScript</span>
+      <span class="chip">Backend: Java 17 / Spring Boot 3</span>
+      <span class="chip">DB: PostgreSQL 15</span>
+      <span class="chip">Cache: Redis 7</span>
+      <span class="chip">MQ: Amazon SQS</span>
+      <span class="chip">Infra: AWS (ECS Fargate)</span>
+      <span class="chip">IaC: Terraform</span>
+    </div>
+    <div class="mermaid">
+flowchart TB
+  subgraph CL[クライアント]
+    B["ブラウザ<br>営業/顧客ポータル"]
+  end
+  subgraph AWS[AWS クラウド]
+    WAF["WAF + CloudFront"]
+    ALB["ALB<br>ロードバランサ"]
+    subgraph ECS["ECS Fargate (オートスケール)"]
+      API["業務API<br>Spring Boot"]
+      BATCH["バッチ処理<br>満期/収納"]
+    end
+    RDS[("PostgreSQL<br>Multi-AZ")]
+    REDIS[("Redis<br>セッション/キャッシュ")]
+    S3[("S3<br>帳票/書類")]
+    SQS["SQS<br>非同期キュー"]
+  end
+  EXT["外部連携<br>決済GW / SMS / 信用情報"]
+
+  B --> WAF --> ALB --> API
+  API --> RDS
+  API --> REDIS
+  API --> S3
+  API --> SQS --> BATCH --> RDS
+  API --> EXT
+    </div>
+    <div class="note"><b>方式設計のポイント:</b> 個人情報を含む書類は DB に直接保存せず <code>S3</code>(暗号化)に格納し、DBには参照キーのみ保持する。保険料計算・帳票出力など重い処理は <code>SQS</code> 経由の非同期バッチに切り出し、画面の応答性を確保する。</div>
+
+    <h3>2.2 機能構成 (モジュール分割) <span class="ko">기능 구성</span></h3>
+    <table>
+      <thead><tr><th>モジュール</th><th>責務 (책임)</th><th>主な要件</th></tr></thead>
+      <tbody>
+        <tr><td>customer</td><td>顧客・本人確認</td><td>FR-01</td></tr>
+        <tr><td>product</td><td>商品・料率・特約</td><td>FR-02</td></tr>
+        <tr><td>quotation</td><td>見積・申込・保険料計算</td><td>FR-03</td></tr>
+        <tr><td>underwriting</td><td>引受査定</td><td>FR-04</td></tr>
+        <tr><td>policy</td><td>契約ライフサイクル</td><td>FR-05</td></tr>
+        <tr><td>billing</td><td>収納・消込</td><td>FR-06</td></tr>
+        <tr><td>claim</td><td>保険金請求・支払</td><td>FR-07</td></tr>
+        <tr><td>document</td><td>帳票・通知</td><td>FR-08</td></tr>
+      </tbody>
+    </table>
+
+    <h3>2.3 データベース設計 (ER図) <span class="ko">데이터베이스 설계</span></h3>
+    <div class="mermaid">
+erDiagram
+  CUSTOMER ||--o{ POLICY : "契約する"
+  PRODUCT  ||--o{ POLICY : "適用される"
+  POLICY   ||--o{ POLICY_COVERAGE : "特約を持つ"
+  POLICY   ||--o{ PREMIUM_PAYMENT : "保険料"
+  POLICY   ||--o{ CLAIM : "請求対象"
+  CLAIM    ||--o{ CLAIM_PAYMENT : "支払"
+
+  CUSTOMER {
+    bigint   customer_id PK
+    varchar  name
+    date     birth_date
+    varchar  kyc_status
+    varchar  email
+  }
+  PRODUCT {
+    bigint   product_id PK
+    varchar  product_type
+    varchar  name
+    jsonb    rate_table
+  }
+  POLICY {
+    bigint   policy_id PK
+    bigint   customer_id FK
+    bigint   product_id FK
+    varchar  policy_no
+    varchar  status
+    date     start_date
+    date     end_date
+    numeric  premium_amount
+  }
+  POLICY_COVERAGE {
+    bigint   coverage_id PK
+    bigint   policy_id FK
+    varchar  coverage_code
+    numeric  insured_amount
+  }
+  PREMIUM_PAYMENT {
+    bigint   payment_id PK
+    bigint   policy_id FK
+    date     due_date
+    varchar  pay_status
+    numeric  amount
+  }
+  CLAIM {
+    bigint   claim_id PK
+    bigint   policy_id FK
+    date     accident_date
+    varchar  claim_status
+    numeric  claim_amount
+  }
+  CLAIM_PAYMENT {
+    bigint   claim_payment_id PK
+    bigint   claim_id FK
+    date     paid_date
+    numeric  paid_amount
+  }
+    </div>
+
+    <h4>主要テーブル: POLICY (契約)</h4>
+    <table>
+      <caption>表 2-1 POLICY テーブル定義 (抜粋)</caption>
+      <thead><tr><th>カラム</th><th>型</th><th>NULL</th><th>説明 (설명)</th></tr></thead>
+      <tbody>
+        <tr><td class="pk">policy_id</td><td><code>BIGSERIAL</code></td><td>NO</td><td>主キー (PK)</td></tr>
+        <tr><td>policy_no</td><td><code>VARCHAR(20)</code></td><td>NO</td><td>証券番号 (一意 / UNIQUE)</td></tr>
+        <tr><td>customer_id</td><td><code>BIGINT</code></td><td>NO</td><td>顧客FK → CUSTOMER</td></tr>
+        <tr><td>product_id</td><td><code>BIGINT</code></td><td>NO</td><td>商品FK → PRODUCT</td></tr>
+        <tr><td>status</td><td><code>VARCHAR(15)</code></td><td>NO</td><td>QUOTED/APPLIED/ACTIVE/LAPSED/CANCELLED</td></tr>
+        <tr><td>start_date</td><td><code>DATE</code></td><td>NO</td><td>保険始期</td></tr>
+        <tr><td>end_date</td><td><code>DATE</code></td><td>NO</td><td>保険終期</td></tr>
+        <tr><td>premium_amount</td><td><code>NUMERIC(12,0)</code></td><td>NO</td><td>保険料(円)</td></tr>
+        <tr><td>created_at</td><td><code>TIMESTAMPTZ</code></td><td>NO</td><td>作成日時 <span class="nn">DEFAULT now()</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>2.4 画面設計 <span class="ko">화면 설계</span></h3>
+    <table>
+      <caption>表 2-2 画面一覧 (主要)</caption>
+      <thead><tr><th style="width:90px">画面ID</th><th>画面名</th><th>概要</th><th>権限</th></tr></thead>
+      <tbody>
+        <tr><td><code>SC-101</code></td><td>顧客検索</td><td>条件指定で顧客を検索・一覧表示</td><td>営業</td></tr>
+        <tr><td><code>SC-201</code></td><td>見積入力</td><td>商品・条件を入力し保険料を試算</td><td>営業/顧客</td></tr>
+        <tr><td><code>SC-301</code></td><td>引受査定</td><td>申込のリスク確認・承認/謝絶</td><td>引受</td></tr>
+        <tr><td><code>SC-401</code></td><td>契約照会</td><td>契約内容・特約・支払状況を表示</td><td>営業/顧客</td></tr>
+        <tr><td><code>SC-501</code></td><td>保険金請求受付</td><td>事故内容入力・書類アップロード</td><td>顧客/査定</td></tr>
+      </tbody>
+    </table>
+    <h4>画面遷移図 (見積〜契約)</h4>
+    <div class="mermaid">
+flowchart LR
+  A["SC-201<br>見積入力"] --> B["SC-202<br>見積結果"]
+  B --> C["SC-203<br>申込入力"]
+  C --> D["SC-301<br>引受査定"]
+  D -->|承認| E["SC-401<br>契約照会"]
+  D -->|謝絶| F["SC-302<br>謝絶通知"]
+    </div>
+
+    <h4>画面詳細設計 (レイアウト・項目定義・アクション) <span class="ko">화면 상세</span></h4>
+    <div class="note"><b>보는 법:</b> 각 화면은 ① レイアウト(목업) → ② 項目定義(항목정의서) → ③ アクション定義(버튼·이벤트) 순. 목업의 빨간 번호 <span class="callout" style="width:16px;height:16px;font-size:10px;vertical-align:baseline">1</span> 가 항목정의서 No와 1:1 대응.</div>
+
+    <!-- SC-201 -->
+    <div class="scr-block">
+      <h4><span class="scr-id">SC-201</span><span class="scr-title">見積入力 (견적 입력)</span></h4>
+      <div class="scr-meta"><b>機能:</b> FR-03 &nbsp;|&nbsp; <b>権限:</b> 営業/顧客 &nbsp;|&nbsp; <b>遷移先:</b> SC-202</div>
+      <div class="step-h">① レイアウト</div>
+      <div class="browser">
+        <div class="browser-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">/quotations/new</span></div>
+        <div class="app">
+          <div class="app-top"><span class="logo">InsureCore<small>保険契約管理</small></span><span class="user">営業部 山田 ▾</span></div>
+          <div class="app-tabs"><span>顧客</span><span class="on">見積・申込</span><span>契約</span><span>保険金</span><span>帳票</span></div>
+          <div class="app-body">
+            <div class="page-title">見積入力</div>
+            <div class="crumb">ホーム ＞ 見積・申込 ＞ 見積入力</div>
+            <div class="form-row"><div class="lbl"><span class="callout">1</span>保険商品<span class="req">必須</span></div><div class="field sel">自動車保険(総合型)</div></div>
+            <div class="form-row"><div class="lbl"><span class="callout">2</span>生年月日<span class="req">必須</span></div><div class="field ph">1990 / 04 / 01</div></div>
+            <div class="form-row"><div class="lbl"><span class="callout">3</span>ノンフリート等級<span class="req">必須</span></div><div class="field sel">10等級</div></div>
+            <div class="form-row"><div class="lbl"><span class="callout">4</span>使用地域<span class="req">必須</span></div><div class="field sel">東京都</div></div>
+            <div class="form-row"><div class="lbl"><span class="callout">5</span>対人賠償<span class="req">必須</span></div><div class="field num-cell">無制限</div></div>
+            <div class="form-row"><div class="lbl"><span class="callout">6</span>車両保険<span class="opt">任意</span></div><div class="field num-cell"><span class="yen">¥</span>1,500,000</div></div>
+            <div class="btnbar"><span class="btn sub">クリア</span><span class="btn">保険料を試算する ▶</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="step-h">② 項目定義</div>
+      <table class="spec">
+        <thead><tr><th style="width:36px">No</th><th>項目名</th><th>区分</th><th>型/桁</th><th>必須</th><th>入力規則</th></tr></thead>
+        <tbody>
+          <tr><td class="no">1</td><td>保険商品</td><td>プルダウン</td><td>—</td><td class="y">○</td><td>有効商品のみ。選択で以降の項目が動的変化</td></tr>
+          <tr><td class="no">2</td><td>生年月日</td><td>日付</td><td><code>DATE</code></td><td class="y">○</td><td>加入年齢18〜75歳。未来日不可</td></tr>
+          <tr><td class="no">3</td><td>ノンフリート等級</td><td>プルダウン</td><td>1〜20</td><td class="y">○</td><td>料率係数に直結。初期値6等級</td></tr>
+          <tr><td class="no">4</td><td>使用地域</td><td>プルダウン</td><td>都道府県</td><td class="y">○</td><td>地域別料率の適用キー</td></tr>
+          <tr><td class="no">5</td><td>対人賠償</td><td>プルダウン</td><td>—</td><td class="y">○</td><td>無制限/1億/5千万</td></tr>
+          <tr><td class="no">6</td><td>車両保険 金額</td><td>数値</td><td><code>NUMBER(9)</code></td><td class="n">×</td><td>0〜9,999,999。半角数字、3桁区切</td></tr>
+        </tbody>
+      </table>
+      <div class="step-h">③ アクション定義</div>
+      <table class="spec">
+        <thead><tr><th>ボタン/イベント</th><th>処理</th><th>遷移・結果</th></tr></thead>
+        <tbody>
+          <tr><td>保険料を試算する</td><td>入力チェック→<code>POST /api/v1/quotations</code></td><td>正常:SC-202 / エラー:該当項目に赤メッセージ</td></tr>
+          <tr><td>商品 変更(onChange)</td><td>商品に応じ項目を再描画</td><td>画面内で動的更新(再読込なし)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SC-202 -->
+    <div class="scr-block">
+      <h4><span class="scr-id">SC-202</span><span class="scr-title">見積結果 (견적 결과)</span></h4>
+      <div class="scr-meta"><b>機能:</b> FR-03 &nbsp;|&nbsp; <b>権限:</b> 営業/顧客 &nbsp;|&nbsp; <b>遷移先:</b> SC-203 申込入力</div>
+      <div class="step-h">① レイアウト</div>
+      <div class="browser">
+        <div class="browser-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">/quotations/Q-20260531-0007</span></div>
+        <div class="app">
+          <div class="app-top"><span class="logo">InsureCore<small>保険契約管理</small></span><span class="user">営業部 山田 ▾</span></div>
+          <div class="app-tabs"><span>顧客</span><span class="on">見積・申込</span><span>契約</span><span>保険金</span></div>
+          <div class="app-body">
+            <div class="page-title">見積結果</div>
+            <div class="crumb">ホーム ＞ 見積・申込 ＞ 見積結果</div>
+            <div style="display:flex;gap:18px;flex-wrap:wrap;">
+              <div class="panel" style="flex:1;min-width:220px;text-align:center;border-top:3px solid var(--gold);">
+                <h5><span class="callout">1</span>月額保険料</h5>
+                <div class="big-num">¥ 58,200</div>
+                <div style="font-size:11px;color:var(--sub);margin-top:4px;">年額 ¥ 698,400 (一括払)</div>
+              </div>
+              <div class="panel" style="flex:1.4;min-width:240px;">
+                <h5><span class="callout">2</span>補償内容</h5>
+                <dl class="kv"><dt>対人賠償</dt><dd>無制限</dd><dt>車両保険</dt><dd>¥ 1,500,000</dd><dt>有効期限</dt><dd>2026-06-30</dd></dl>
+              </div>
+            </div>
+            <div class="btnbar"><span class="btn sub">条件を修正</span><span class="btn sub">見積書PDF</span><span class="btn">この内容で申込む ▶</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="step-h">② 項目定義</div>
+      <table class="spec">
+        <thead><tr><th style="width:36px">No</th><th>項目名</th><th>区分</th><th>表示規則</th></tr></thead>
+        <tbody>
+          <tr><td class="no">1</td><td>保険料</td><td>表示</td><td>API算出値。月額/年額併記、円未満切捨、3桁区切</td></tr>
+          <tr><td class="no">2</td><td>補償内容</td><td>表示</td><td>SC-201の入力を確認表示(編集不可)</td></tr>
+        </tbody>
+      </table>
+      <div class="step-h">③ アクション定義</div>
+      <table class="spec">
+        <thead><tr><th>ボタン</th><th>処理</th><th>遷移</th></tr></thead>
+        <tbody>
+          <tr><td>この内容で申込む</td><td>見積IDを引継ぎ</td><td>SC-203</td></tr>
+          <tr><td>見積書PDF</td><td>帳票生成(非同期)</td><td>PDF DL</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SC-301 -->
+    <div class="scr-block">
+      <h4><span class="scr-id">SC-301</span><span class="scr-title">引受査定 (인수 심사)</span></h4>
+      <div class="scr-meta"><b>機能:</b> FR-04 &nbsp;|&nbsp; <b>権限:</b> 引受担当(UW) &nbsp;|&nbsp; <b>遷移先:</b> 契約照会/謝絶通知</div>
+      <div class="step-h">① レイアウト</div>
+      <div class="browser">
+        <div class="browser-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">/underwriting/A-20260531-0021</span></div>
+        <div class="app">
+          <div class="app-top"><span class="logo">InsureCore<small>保険契約管理</small></span><span class="user">引受部 佐藤 ▾</span></div>
+          <div class="app-tabs"><span>顧客</span><span>見積・申込</span><span class="on">引受</span><span>契約</span></div>
+          <div class="app-body">
+            <div class="page-title">引受査定</div>
+            <div class="crumb">ホーム ＞ 引受 ＞ A-20260531-0021</div>
+            <div class="panel"><h5><span class="callout">1</span>申込概要</h5>
+              <dl class="kv"><dt>契約者</dt><dd>田中 太郎 (35歳/男性)</dd><dt>商品</dt><dd>自動車保険(総合型)</dd><dt>保険料</dt><dd>¥ 58,200 / 月</dd></dl>
+            </div>
+            <div class="panel"><h5><span class="callout">2</span>リスク評価結果</h5>
+              <table class="ui-table"><thead><tr><th>評価項目</th><th>結果</th><th>判定</th></tr></thead>
+                <tbody>
+                  <tr><td>信用情報スコア</td><td>720</td><td><span class="badge active">良好</span></td></tr>
+                  <tr><td>事故歴(3年)</td><td>0件</td><td><span class="badge active">問題なし</span></td></tr>
+                  <tr><td>自動判定(RiskEngine)</td><td>APPROVE推奨</td><td><span class="badge active">承認推奨</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="form-row"><div class="lbl"><span class="callout">3</span>査定コメント<span class="opt">任意</span></div><div class="field ph" style="min-width:280px;">特記事項なし</div></div>
+            <div class="btnbar"><span class="btn danger">謝絶する</span><span class="btn ok">承認する ✓</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="step-h">② 項目定義</div>
+      <table class="spec">
+        <thead><tr><th style="width:36px">No</th><th>項目名</th><th>区分</th><th>内容・規則</th></tr></thead>
+        <tbody>
+          <tr><td class="no">1</td><td>申込概要</td><td>表示</td><td>申込・顧客マスタから取得(編集不可)</td></tr>
+          <tr><td class="no">2</td><td>リスク評価結果</td><td>表示</td><td>信用情報API+RiskEngine。承認推奨/要確認/謝絶推奨を色分け</td></tr>
+          <tr><td class="no">3</td><td>査定コメント</td><td>テキストエリア</td><td>最大500字。承認/謝絶時に履歴保存</td></tr>
+        </tbody>
+      </table>
+      <div class="step-h">③ アクション定義</div>
+      <table class="spec">
+        <thead><tr><th>ボタン</th><th>処理</th><th>結果</th></tr></thead>
+        <tbody>
+          <tr><td>承認する</td><td><code>POST /applications/{id}/underwrite</code> (APPROVE)</td><td>確認後 SC-401へ</td></tr>
+          <tr><td>謝絶する</td><td>同API (REJECT)。理由入力 必須</td><td>謝絶通知(SC-302)生成</td></tr>
+        </tbody>
+      </table>
+      <div class="note warn"><b>排他制御:</b> 査定済の申込を再処理した場合 <code>E-U-002 (409)</code> を返し二重査定を防止。</div>
+    </div>
+
+    <!-- SC-401 -->
+    <div class="scr-block">
+      <h4><span class="scr-id">SC-401</span><span class="scr-title">契約照会 (계약 조회)</span></h4>
+      <div class="scr-meta"><b>機能:</b> FR-05 &nbsp;|&nbsp; <b>権限:</b> 営業/顧客 &nbsp;|&nbsp; <b>遷移元:</b> 契約検索・顧客ポータル</div>
+      <div class="step-h">① レイアウト</div>
+      <div class="browser">
+        <div class="browser-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">/policies/AUTO-2026-0098123</span></div>
+        <div class="app">
+          <div class="app-top"><span class="logo">InsureCore<small>保険契約管理</small></span><span class="user">田中 太郎 様 ▾</span></div>
+          <div class="app-tabs"><span>マイページ</span><span class="on">契約照会</span><span>各種手続</span><span>保険金請求</span></div>
+          <div class="app-body">
+            <div class="page-title">契約照会</div>
+            <div class="crumb">マイページ ＞ 契約照会</div>
+            <div class="panel" style="border-top:3px solid var(--gold);"><h5><span class="callout">1</span>契約基本情報</h5>
+              <dl class="kv"><dt>証券番号</dt><dd>AUTO-2026-0098123</dd><dt>契約状態</dt><dd><span class="badge active">有効 (ACTIVE)</span></dd><dt>保険期間</dt><dd>2026-06-01 〜 2027-05-31</dd><dt>保険料</dt><dd>¥ 58,200 / 月</dd></dl>
+            </div>
+            <div class="panel"><h5><span class="callout">2</span>補償・特約</h5>
+              <table class="ui-table"><thead><tr><th>補償</th><th>保険金額</th></tr></thead><tbody><tr><td>対人賠償</td><td>無制限</td></tr><tr><td>車両保険</td><td>¥ 1,500,000</td></tr></tbody></table>
+            </div>
+            <div class="panel"><h5><span class="callout">3</span>保険料 支払状況</h5>
+              <table class="ui-table"><thead><tr><th>請求月</th><th>金額</th><th>状態</th></tr></thead><tbody><tr><td>2026-06</td><td>¥ 58,200</td><td><span class="badge paid">入金済</span></td></tr><tr><td>2026-07</td><td>¥ 58,200</td><td><span class="badge wait">引落予定</span></td></tr></tbody></table>
+            </div>
+            <div class="btnbar"><span class="btn sub">契約証券PDF</span><span class="btn sub">住所変更(異動)</span><span class="btn danger">解約手続</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="step-h">② 項目定義</div>
+      <table class="spec">
+        <thead><tr><th style="width:36px">No</th><th>項目名</th><th>区分</th><th>内容・規則</th></tr></thead>
+        <tbody>
+          <tr><td class="no">1</td><td>契約基本情報</td><td>表示</td><td>POLICY テーブル。状態を色バッジ表示</td></tr>
+          <tr><td class="no">2</td><td>補償・特約</td><td>一覧</td><td>POLICY_COVERAGE を結合表示</td></tr>
+          <tr><td class="no">3</td><td>支払状況</td><td>一覧</td><td>PREMIUM_PAYMENT 直近12回、状態別バッジ</td></tr>
+        </tbody>
+      </table>
+      <div class="step-h">③ アクション定義</div>
+      <table class="spec">
+        <thead><tr><th>ボタン</th><th>処理</th><th>権限/注意</th></tr></thead>
+        <tbody>
+          <tr><td>契約証券PDF</td><td>帳票生成(非同期)→S3→DL</td><td>営業/顧客</td></tr>
+          <tr><td>解約手続</td><td>解約確認画面へ</td><td>顧客のみ。返戻金計算を提示</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SC-501 -->
+    <div class="scr-block">
+      <h4><span class="scr-id">SC-501</span><span class="scr-title">保険金請求受付 (보험금 청구 접수)</span></h4>
+      <div class="scr-meta"><b>機能:</b> FR-07 &nbsp;|&nbsp; <b>権限:</b> 顧客/査定 &nbsp;|&nbsp; <b>遷移先:</b> 支払査定</div>
+      <div class="step-h">① レイアウト</div>
+      <div class="browser">
+        <div class="browser-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">/claims/new</span></div>
+        <div class="app">
+          <div class="app-top"><span class="logo">InsureCore<small>保険契約管理</small></span><span class="user">田中 太郎 様 ▾</span></div>
+          <div class="app-tabs"><span>マイページ</span><span>契約照会</span><span>各種手続</span><span class="on">保険金請求</span></div>
+          <div class="app-body">
+            <div class="page-title">保険金請求受付</div>
+            <div class="crumb">マイページ ＞ 保険金請求 ＞ 新規受付</div>
+            <div class="form-row"><div class="lbl"><span class="callout">1</span>対象契約<span class="req">必須</span></div><div class="field sel">AUTO-2026-0098123 (自動車)</div></div>
+            <div class="form-row"><div class="lbl"><span class="callout">2</span>事故発生日<span class="req">必須</span></div><div class="field ph">2026 / 05 / 28</div></div>
+            <div class="form-row"><div class="lbl"><span class="callout">3</span>事故種別<span class="req">必須</span></div><div class="field sel">車両単独事故</div></div>
+            <div class="form-row" style="align-items:flex-start;"><div class="lbl" style="padding-top:6px;"><span class="callout">4</span>事故状況<span class="req">必須</span></div><div class="field ph" style="min-width:300px;height:60px;align-items:flex-start;">駐車場でガードレールに接触し前方バンパーが破損…</div></div>
+            <div style="margin:14px 0;"><div class="lbl" style="margin-bottom:8px;"><span class="callout">5</span>証拠書類<span class="req">必須</span></div>
+              <div class="upload">📎 事故写真・見積書 をドラッグ&amp;ドロップ<br><span style="font-size:11px;">(JPG/PNG/PDF・10MB/件・最大10件)</span></div>
+            </div>
+            <div class="btnbar"><span class="btn sub">一時保存</span><span class="btn">請求を提出する ▶</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="step-h">② 項目定義</div>
+      <table class="spec">
+        <thead><tr><th style="width:36px">No</th><th>項目名</th><th>区分</th><th>型/桁</th><th>必須</th><th>入力規則</th></tr></thead>
+        <tbody>
+          <tr><td class="no">1</td><td>対象契約</td><td>プルダウン</td><td>—</td><td class="y">○</td><td>本人の有効契約のみ表示</td></tr>
+          <tr><td class="no">2</td><td>事故発生日</td><td>日付</td><td><code>DATE</code></td><td class="y">○</td><td>保険期間内かつ未来日不可</td></tr>
+          <tr><td class="no">3</td><td>事故種別</td><td>プルダウン</td><td>—</td><td class="y">○</td><td>商品により選択肢が変動</td></tr>
+          <tr><td class="no">4</td><td>事故状況</td><td>テキストエリア</td><td>最大1000字</td><td class="y">○</td><td>10文字以上</td></tr>
+          <tr><td class="no">5</td><td>証拠書類</td><td>ファイル</td><td>JPG/PNG/PDF</td><td class="y">○</td><td>1件以上必須。10MB/件、最大10件。S3暗号化保存</td></tr>
+        </tbody>
+      </table>
+      <div class="step-h">③ アクション定義</div>
+      <table class="spec">
+        <thead><tr><th>ボタン</th><th>処理</th><th>結果</th></tr></thead>
+        <tbody>
+          <tr><td>請求を提出する</td><td>入力チェック→<code>POST /api/v1/claims</code>。CLAIMをRECEIVED登録、書類S3保存</td><td>受付番号発番→支払査定キューへ</td></tr>
+          <tr><td>一時保存</td><td>下書き(DRAFT)保存</td><td>後で再開可能</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>共通画面ルール <span class="ko">공통 화면 규칙</span></h4>
+    <table class="spec">
+      <thead><tr><th>区分</th><th>ルール</th></tr></thead>
+      <tbody>
+        <tr><td>共通レイアウト</td><td>ヘッダー(ロゴ/タブ/ユーザー) + パンくず + 右下に主操作ボタン</td></tr>
+        <tr><td>ボタン配色</td><td>確定=紺/緑、破壊的操作(解約・謝絶)=赤</td></tr>
+        <tr><td>バリデーション</td><td>必須・形式・桁数をフロント+サーバ双方で検証。該当項目を赤枠化し上部にサマリ表示</td></tr>
+        <tr><td>対応端末</td><td>業務系=PC(1280px〜) / 顧客ポータル=スマホ対応</td></tr>
+        <tr><td>アクセシビリティ</td><td>JIS X 8341準拠。コントラスト比4.5:1以上、キーボード操作可</td></tr>
+      </tbody>
+    </table>
+
+    <h3>2.5 API設計 <span class="ko">API 설계</span></h3>
+    <table>
+      <caption>表 2-3 主要 REST API</caption>
+      <thead><tr><th>メソッド</th><th>パス</th><th>概要</th><th>認可</th></tr></thead>
+      <tbody>
+        <tr><td><code>POST</code></td><td><code>/api/v1/quotations</code></td><td>見積作成(保険料試算)</td><td>SALES</td></tr>
+        <tr><td><code>POST</code></td><td><code>/api/v1/applications</code></td><td>申込登録</td><td>SALES</td></tr>
+        <tr><td><code>POST</code></td><td><code>/api/v1/applications/{id}/underwrite</code></td><td>引受判定</td><td>UW</td></tr>
+        <tr><td><code>GET</code></td><td><code>/api/v1/policies/{policyNo}</code></td><td>契約照会</td><td>SALES,CUST</td></tr>
+        <tr><td><code>POST</code></td><td><code>/api/v1/claims</code></td><td>保険金請求受付</td><td>CUST,ADJ</td></tr>
+      </tbody>
+    </table>
+    <h4>リクエスト/レスポンス例 — 見積作成</h4>
+<pre><code><span class="c">// POST /api/v1/quotations  (Request)</span>
+{
+  <span class="s">"productId"</span>: 1001,
+  <span class="s">"customer"</span>: { <span class="s">"birthDate"</span>: <span class="s">"1990-04-01"</span>, <span class="s">"gender"</span>: <span class="s">"M"</span> },
+  <span class="s">"coverages"</span>: [{ <span class="s">"code"</span>: <span class="s">"BODILY"</span>, <span class="s">"insuredAmount"</span>: 100000000 }]
+}
+
+<span class="c">// 200 OK  (Response)</span>
+{
+  <span class="s">"quotationId"</span>: <span class="s">"Q-20260531-0007"</span>,
+  <span class="s">"premiumAmount"</span>: 58200,
+  <span class="s">"currency"</span>: <span class="s">"JPY"</span>,
+  <span class="s">"expiresAt"</span>: <span class="s">"2026-06-30"</span>
+}</code></pre>
+  </section>
+
+  <!-- ===================== 3. 詳細設計 ===================== -->
+  <section id="s3">
+    <div class="sec-head"><span class="num">03</span><h2>詳細設計</h2><span class="ko">상세 설계</span></div>
+    <span class="phase-tag">工程 3 / PHASE 3</span>
+    <p class="lead">基本設計をもとに、開発者がそのままコーディングできる粒度まで内部構造を定義する。「内部設計」とも呼ばれ、クラス・処理ロジック・例外処理を確定する。</p>
+
+    <h3>3.1 クラス設計 (quotation モジュール) <span class="ko">클래스 설계</span></h3>
+    <div class="mermaid">
+classDiagram
+  class QuotationController{
+    +createQuotation(req) QuotationResponse
+  }
+  class QuotationService{
+    +calculate(cmd) Quotation
+  }
+  class PremiumCalculator{
+    <<interface>>
+    +calc(ctx) Money
+  }
+  class AutoPremiumCalculator
+  class LifePremiumCalculator
+  class RateTableRepository{
+    +findByProduct(id) RateTable
+  }
+  QuotationController --> QuotationService
+  QuotationService --> PremiumCalculator
+  QuotationService --> RateTableRepository
+  PremiumCalculator <|.. AutoPremiumCalculator
+  PremiumCalculator <|.. LifePremiumCalculator
+    </div>
+    <div class="note"><b>설계 의도:</b> 보험 종류별 보험료 산출 로직을 <code>PremiumCalculator</code> 인터페이스로 추상화(Strategy 패턴)하여, 신상품 추가 시 기존 코드 변경 없이 구현체만 추가한다(개방-폐쇄 원칙).</div>
+
+    <h3>3.2 シーケンス設計 (引受査定) <span class="ko">시퀀스 설계</span></h3>
+    <div class="mermaid">
+sequenceDiagram
+  actor UW as 引受担当
+  participant C as Controller
+  participant S as UnderwritingService
+  participant R as RiskEngine
+  participant EXT as 信用情報API
+  participant DB as PostgreSQL
+
+  UW->>C: POST /applications/{id}/underwrite
+  C->>S: underwrite(id)
+  S->>DB: 申込・顧客を取得
+  S->>EXT: 信用照会(顧客)
+  EXT-->>S: スコア
+  S->>R: リスク判定(申込, スコア)
+  R-->>S: APPROVE / REJECT
+  S->>DB: 契約状態を更新
+  S-->>C: 判定結果
+  C-->>UW: 200 OK (承認)
+    </div>
+
+    <h3>3.3 主要処理ロジック <span class="ko">주요 처리 로직</span></h3>
+    <h4>保険料計算 (自動車)</h4>
+<pre><code><span class="k">public</span> Money <span class="f">calc</span>(QuoteContext ctx) {
+  <span class="t">RateTable</span> rate = rateRepo.findByProduct(ctx.productId());
+  Money base = rate.baseRate(ctx.coverageCode());
+  <span class="c">// 年齢・等級・地域による係数を順次適用</span>
+  <span class="t">BigDecimal</span> factor = ageFactor(ctx.age())
+      .multiply(gradeFactor(ctx.noClaimGrade()))
+      .multiply(areaFactor(ctx.area()));
+  <span class="k">return</span> base.multiply(factor).roundDown();  <span class="c">// 円未満切捨</span>
+}</code></pre>
+
+    <h3>3.4 状態遷移 (契約ステータス) <span class="ko">계약 상태 전이</span></h3>
+    <div class="mermaid">
+stateDiagram-v2
+  [*] --> QUOTED: 見積作成
+  QUOTED --> APPLIED: 申込
+  APPLIED --> ACTIVE: 引受承認+初回入金
+  APPLIED --> [*]: 謝絶/取消
+  ACTIVE --> LAPSED: 保険料未納(失効)
+  LAPSED --> ACTIVE: 復活手続
+  ACTIVE --> CANCELLED: 解約
+  ACTIVE --> [*]: 満期
+    </div>
+
+    <h3>3.5 例外・エラー設計 <span class="ko">예외·에러 설계</span></h3>
+    <table>
+      <thead><tr><th>エラーコード</th><th>HTTP</th><th>条件 (조건)</th><th>対応</th></tr></thead>
+      <tbody>
+        <tr><td><code>E-Q-001</code></td><td>400</td><td>料率テーブル未登録</td><td>業務エラー画面に誘導</td></tr>
+        <tr><td><code>E-U-002</code></td><td>409</td><td>既に査定済みの申込</td><td>二重処理を防止</td></tr>
+        <tr><td><code>E-EX-500</code></td><td>503</td><td>信用情報API タイムアウト</td><td>3回リトライ後に保留キューへ</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ===================== 4. テスト ===================== -->
+  <section id="s4">
+    <div class="sec-head"><span class="num">04</span><h2>テスト計画</h2><span class="ko">테스트 계획</span></div>
+    <span class="phase-tag">工程 4 / PHASE 4</span>
+    <p class="lead">単体テストから受け入れテストまで、各レベルの目的・範囲・合格基準を定義する。下流ほど業務観点を重視する。</p>
+
+    <table>
+      <caption>表 4-1 テストレベル</caption>
+      <thead><tr><th>レベル</th><th>目的</th><th>主体</th><th>合格基準 (합격 기준)</th></tr></thead>
+      <tbody>
+        <tr><td>単体テスト (UT)</td><td>関数・クラス単位の動作確認</td><td>PG</td><td>カバレッジ80%以上 / 全件PASS</td></tr>
+        <tr><td>結合テスト (IT)</td><td>モジュール間連携・API確認</td><td>SE</td><td>主要シナリオ全PASS</td></tr>
+        <tr><td>システムテスト (ST)</td><td>非機能(性能/可用性)含む全体</td><td>QA</td><td>応答2秒以内 / 障害復旧確認</td></tr>
+        <tr><td>受け入れテスト (UAT)</td><td>業務要件の充足確認</td><td>顧客</td><td>業務シナリオ承認</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.1 テストケース例 <span class="ko">테스트 케이스 예시</span></h3>
+    <table>
+      <thead><tr><th>ID</th><th>観点</th><th>入力 (입력)</th><th>期待結果 (기대 결과)</th></tr></thead>
+      <tbody>
+        <tr><td><code>TC-Q-01</code></td><td>正常系</td><td>30歳/等級10/都市部</td><td>保険料が料率×係数で算出される</td></tr>
+        <tr><td><code>TC-Q-02</code></td><td>境界値</td><td>加入年齢 上限(75歳)</td><td>正常に試算される</td></tr>
+        <tr><td><code>TC-Q-03</code></td><td>異常系</td><td>料率未登録の商品</td><td><code>E-Q-001</code> を返す</td></tr>
+        <tr><td><code>TC-U-01</code></td><td>業務</td><td>信用スコア低/高リスク</td><td>判定が REJECT になる</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ===================== 5. リリース・運用 ===================== -->
+  <section id="s5">
+    <div class="sec-head"><span class="num">05</span><h2>リリース・運用設計</h2><span class="ko">배포·운영 설계</span></div>
+    <span class="phase-tag">工程 5 / PHASE 5</span>
+    <p class="lead">本番環境への展開方式、監視、保守体制を定義する。保険業務は無停止が求められるため段階的リリースを採用する。</p>
+
+    <div class="grid2">
+      <div class="card">
+        <h4>環境構成 (환경)</h4>
+        <ul class="clean">
+          <li>開発環境 (dev): 機能開発・単体</li>
+          <li>ステージング環境 (stg): 本番同等・UAT</li>
+          <li>本番環境 (prod): Multi-AZ 冗長構成</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>デプロイ方式</h4>
+        <ul class="clean">
+          <li>CI/CD: GitHub Actions</li>
+          <li>Blue/Green デプロイ(無停止)</li>
+          <li>DBマイグレーション: Flyway</li>
+          <li>ロールバック手順を整備</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>5.1 リリースフロー <span class="ko">릴리스 흐름</span></h3>
+    <div class="mermaid">
+flowchart LR
+  PR["Pull Request<br>+ コードレビュー"] --> CI["CI<br>ビルド/単体テスト"]
+  CI --> STG["stg デプロイ<br>結合/UAT"]
+  STG --> APV{"リリース承認"}
+  APV -->|OK| BG["Blue/Green<br>本番デプロイ"]
+  BG --> MON["監視<br>モニタリング"]
+  MON -->|異常| RB["ロールバック"]
+    </div>
+
+    <h3>5.2 運用・監視 <span class="ko">운영·모니터링</span></h3>
+    <table>
+      <thead><tr><th>項目</th><th>内容</th><th>備考</th></tr></thead>
+      <tbody>
+        <tr><td>監視 (모니터링)</td><td>CloudWatch + アラート (Slack通知)</td><td>CPU/メモリ/エラー率</td></tr>
+        <tr><td>ログ</td><td>構造化ログを集約、操作ログ7年保管</td><td>監査要件</td></tr>
+        <tr><td>バックアップ</td><td>DB 日次スナップショット + PITR</td><td>RPO 15分 / RTO 1時間</td></tr>
+        <tr><td>保守 (유지보수)</td><td>定期パッチ・脆弱性対応</td><td>緊急時はホットフィックス</td></tr>
+        <tr><td>バッチ運用</td><td>満期通知(日次) / 収納消込(日次)</td><td>失敗時 自動再実行</td></tr>
+      </tbody>
+    </table>
+    <div class="note warn"><b>運用上の注意:</b> 保険金支払バッチは金銭処理を伴うため、二重送金防止の冪等キー(idempotency key)を必須とし、実行結果は必ず人手による日次照合(突合)を行う。</div>
+  </section>
+
+  <!-- ===================== 6. 体制・用語 ===================== -->
+  <section id="s6">
+    <div class="sec-head"><span class="num">06</span><h2>体制・用語</h2><span class="ko">체제·용어집</span></div>
+
+    <h3>6.1 体制・役割 <span class="ko">체제·역할</span></h3>
+    <table>
+      <thead><tr><th>役割</th><th>日本語 / 한국어</th><th>担当 (담당)</th></tr></thead>
+      <tbody>
+        <tr><td>PM</td><td>プロジェクトマネージャー / 프로젝트 매니저</td><td>全体の進捗・予算・顧客対応</td></tr>
+        <tr><td>SE</td><td>システムエンジニア / 시스템 엔지니어</td><td>要件分析〜設計</td></tr>
+        <tr><td>TL</td><td>テクニカルリード / 기술 리더</td><td>設計レビュー・技術方針</td></tr>
+        <tr><td>PG</td><td>プログラマー / 프로그래머</td><td>実装・単体テスト</td></tr>
+        <tr><td>QA</td><td>テストエンジニア / 품질 보증</td><td>テスト計画・実行</td></tr>
+        <tr><td>Infra</td><td>インフラエンジニア / 인프라</td><td>AWS構成・CI/CD・運用</td></tr>
+      </tbody>
+    </table>
+
+    <h3>6.2 用語集 <span class="ko">용어집 (보험·IT)</span></h3>
+    <table>
+      <thead><tr><th>用語</th><th>読み / 한국어</th><th>意味</th></tr></thead>
+      <tbody>
+        <tr><td>引受</td><td>ひきうけ / 인수(언더라이팅)</td><td>申込のリスクを評価し契約可否を判断すること</td></tr>
+        <tr><td>謝絶</td><td>しゃぜつ / 인수 거절</td><td>引受の結果、契約を引き受けないこと</td></tr>
+        <tr><td>料率</td><td>りょうりつ / 요율</td><td>保険料を算出する基礎となる比率</td></tr>
+        <tr><td>特約</td><td>とくやく / 특약</td><td>主契約に付加する追加の補償</td></tr>
+        <tr><td>消込</td><td>けしこみ / 소(消)込·입금 대사</td><td>入金と請求を突き合わせて記録すること</td></tr>
+        <tr><td>失効</td><td>しっこう / 실효</td><td>保険料未納で契約の効力が失われること</td></tr>
+        <tr><td>突合</td><td>とつごう / 대사·돌합</td><td>2つのデータを照合して一致を確認すること</td></tr>
+        <tr><td>冪等</td><td>べきとう / 멱등(idempotent)</td><td>同じ操作を何度実行しても結果が変わらない性質</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    保険契約管理システム 設計書 (InsureCore) — v1.0 / 2026-05-31 — 社外秘<br>
+    本書は日本 IT 開発工程(要件定義〜運用)の学習用に作成された設計書サンプルです。
+  </footer>
+
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad:true,
+    theme:'base',
+    themeVariables:{
+      primaryColor:'#eef2f6',
+      primaryBorderColor:'#0b3d5c',
+      primaryTextColor:'#1a1d24',
+      lineColor:'#9a1c2e',
+      fontFamily:"'Noto Sans KR',sans-serif",
+      fontSize:'13px'
+    }
+  });
+</script>
+</body>
+</html>
